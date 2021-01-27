@@ -8,6 +8,9 @@ import { buildSchema } from "type-graphql";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/User";
+import redis from "redis";
+import session from "express-session";
+import connectRedis from "connect-redis";
 
 const main = async () => {
   //connect to database
@@ -16,6 +19,28 @@ const main = async () => {
   await orm.getMigrator().up();
 
   const app = express();
+
+  const RedisStore = connectRedis(session);
+  const redisClient = redis.createClient();
+
+  app.use(
+    session({
+      name: "qid",
+      store: new RedisStore({
+        client: redisClient,
+        disableTTL: true,
+      }),
+      cookie: {
+        httpOnly: true,
+        secure: __prod__, // cookie only works in https
+        sameSite: "lax",
+      },
+      saveUninitialized: false,
+      secret: "lksf90s8dFUFowi4u03409923q$#%",
+      resave: false,
+    })
+  );
+
   //Initiate an apollo server with the following schema.
   const apolloServer = new ApolloServer({
     schema: await buildSchema({
@@ -23,7 +48,7 @@ const main = async () => {
       validate: false,
     }),
     //Context is a special object that is accessible by all resolvers
-    context: () => ({ em: orm.em }),
+    context: ({ req, res }) => ({ em: orm.em, req, res }),
   });
 
   apolloServer.applyMiddleware({ app });
