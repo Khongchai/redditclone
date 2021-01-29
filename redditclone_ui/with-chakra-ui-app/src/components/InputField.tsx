@@ -7,10 +7,8 @@ import {
 import { useField } from "formik";
 import React, { InputHTMLAttributes } from "react";
 
-//this inputfield should have everything the normal input element has
-//plus some extra properties like everything after the ampersand
-//is no longer an optional field.
-
+//this top type declaration is saying that inputfield should have everything the normal input element has
+//plus some extra properties like everything after the ampersand is no longer an optional field.
 type InputFieldProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string;
   placeholder: string;
