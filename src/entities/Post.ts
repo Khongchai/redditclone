@@ -6,8 +6,6 @@ import { Field, ObjectType } from "type-graphql";
   @ObjectType = It is now an object for TypeScript that we can use for our graphql query
   @Field = Properties decorated with this is now exposed to Typescript
   You can choose to not expose some fields to GraphQL by omitting @Field from the property.
-
-
 */
 
 @ObjectType()

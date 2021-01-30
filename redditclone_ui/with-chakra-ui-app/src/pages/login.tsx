@@ -3,30 +3,24 @@ import { Formik, Form } from "formik";
 import { Wrapper } from "../components/Wrapper";
 import { InputField } from "../components/InputField";
 import { Box, Button } from "@chakra-ui/react";
-import { useRegisterMutation } from "../generated/graphql";
+import { useLoginMutation } from "../generated/graphql";
 import { toErrorMap } from "../toErrorMap";
 import { useRouter } from "next/router";
 
-interface registerProps {}
-
-const Register: React.FC<registerProps> = ({}) => {
+const Login: React.FC<{}> = ({}) => {
   //graphql code generator was brought in to the mutation
-  const [, register] = useRegisterMutation();
+  const [, login] = useLoginMutation();
   const router = useRouter();
   return (
     <Wrapper variant="small">
       <Formik
         initialValues={{ username: "", password: "" }}
         onSubmit={async (values, { setErrors }) => {
-          //the values in the initial values match exactly to the graphql
-          //variable values, so we can just pass in the values variable into
-          //register. Otherwise, it will have to be something like
-          //username: values.username
-          const response = await register(values);
-          if (response.data?.register.errors) {
+          const response = await login(values);
+          if (response.data?.login.errors) {
             //setError method is provided by Formik
-            setErrors(toErrorMap(response.data.register.errors));
-          } else if (response.data?.register.user) {
+            setErrors(toErrorMap(response.data.login.errors));
+          } else if (response.data?.login.user) {
             router.push("/");
           }
           return response;
@@ -53,7 +47,7 @@ const Register: React.FC<registerProps> = ({}) => {
               colorScheme="teal"
               type="submit"
             >
-              register
+              login
             </Button>
           </Form>
         )}
@@ -62,4 +56,4 @@ const Register: React.FC<registerProps> = ({}) => {
   );
 };
 
-export default Register;
+export default Login;
