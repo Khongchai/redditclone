@@ -12,6 +12,7 @@ import {
 } from "type-graphql";
 import argon2 from "argon2";
 import { EntityManager } from "@mikro-orm/postgresql";
+import { COOKIE_NAME } from "../constants";
 
 //Instead of creating multiple @Arg, this can be used instead.
 //This is good because this class can be reused therefore very DRY.
@@ -150,5 +151,19 @@ export class UserResolver {
     return {
       user,
     };
+  }
+
+  @Mutation(() => Boolean)
+  logout(@Ctx() { req, res }: MyContext) {
+    return new Promise((resolve) =>
+      req.session.destroy((err) => {
+        res.clearCookie(COOKIE_NAME);
+        if (err) {
+          console.log("Logout error: ", err);
+          resolve(false);
+        }
+        resolve(true);
+      })
+    );
   }
 }
