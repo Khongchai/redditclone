@@ -2,10 +2,6 @@ import { Post } from "../entities/Post";
 import { MyContext } from "src/types";
 import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
 
-function sleep_seconds(sec: number) {
-  return new Promise((res) => setTimeout(res, sec * 1000));
-}
-
 //resolver queries for whatever you have in your entities.
 //Query = for getting data
 //Mutation is for, well, everything else that requires the manipulation of data
@@ -17,7 +13,7 @@ export class PostResolver {
   @Query(() => [Post])
   //The :Promise<Post[]> type is a typescript type
   async posts(@Ctx() { em }: MyContext): Promise<Post[]> {
-    await sleep_seconds(3);
+    //await sleep_seconds(3);
     return em.find(Post, {});
   }
 
