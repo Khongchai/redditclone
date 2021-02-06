@@ -16,14 +16,13 @@ exports.sendEmail = void 0;
 const nodemailer_1 = __importDefault(require("nodemailer"));
 function sendEmail(to, html) {
     return __awaiter(this, void 0, void 0, function* () {
-        let testAccount = yield nodemailer_1.default.createTestAccount();
         let transporter = nodemailer_1.default.createTransport({
             host: "smtp.ethereal.email",
             port: 587,
             secure: false,
             auth: {
-                user: testAccount.user,
-                pass: testAccount.pass,
+                user: "sdd7jpbp7o7rvr3f@ethereal.email",
+                pass: "AfNGEZ4RHR47jQQ1P9",
             },
         });
         let info = yield transporter.sendMail({

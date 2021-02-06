@@ -18,13 +18,13 @@ const Register: React.FC<registerProps> = ({}) => {
   return (
     <Wrapper variant="small">
       <Formik
-        initialValues={{ username: "", password: "" }}
+        initialValues={{ email: "", username: "", password: "" }}
         onSubmit={async (values, { setErrors }) => {
           //the values in the initial values match exactly to the graphql
           //variable values, so we can just pass in the values variable into
           //register. Otherwise, it will have to be something like
           //username: values.username
-          const response = await register(values);
+          const response = await register({ options: values });
           if (response.data?.register.errors) {
             //setError method is provided by Formik
             setErrors(toErrorMap(response.data.register.errors));
@@ -41,6 +41,9 @@ const Register: React.FC<registerProps> = ({}) => {
               placeholder="username"
               label="Username"
             />
+            <Box mt={4}>
+              <InputField name="email" placeholder="Email" label="Email" />
+            </Box>
             <Box mt={4}>
               <InputField
                 name="password"

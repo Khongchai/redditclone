@@ -15,12 +15,14 @@ import cors from "cors";
 import { sendEmail } from "./utils/sendEmail";
 
 const main = async () => {
-  sendEmail("bob@bob.com", "Hello there").catch((err) => console.log(err));
+  await sendEmail("bob@bob.com", "Hello there").catch((err) => {
+    console.error(err);
+  });
   //connect to database
   const orm = await MikroORM.init(mikroConfig);
+
   //getMigrator().up() runs the migration after migration:create
   await orm.getMigrator().up();
-
   const app = express();
 
   const RedisStore = connectRedis(session);
