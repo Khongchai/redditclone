@@ -1,0 +1,8 @@
+fragment GenericUserResponse on UserResponse {
+  errors {
+    ...ErrorsFragment
+  }
+  user {
+    ...UserFragment
+  }
+}
