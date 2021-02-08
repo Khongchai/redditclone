@@ -12,12 +12,8 @@ import redis from "redis";
 import session from "express-session";
 import connectRedis from "connect-redis";
 import cors from "cors";
-import { sendEmail } from "./utils/sendEmail";
 
 const main = async () => {
-  await sendEmail("bob@bob.com", "Hello there").catch((err) => {
-    console.error(err);
-  });
   //connect to database
   const orm = await MikroORM.init(mikroConfig);
 
@@ -60,7 +56,7 @@ const main = async () => {
       validate: false,
     }),
     //Context is a special object that is accessible by all resolvers
-    context: ({ req, res }) => ({ em: orm.em, req, res }),
+    context: ({ req, res }) => ({ em: orm.em, req, res, redis: redisClient }),
   });
 
   apolloServer.applyMiddleware({
