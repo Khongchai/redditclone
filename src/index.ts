@@ -1,24 +1,30 @@
-import "reflect-metadata";
-import { MikroORM } from "@mikro-orm/core";
-import { COOKIE_NAME, __prod__ } from "./constants";
-import mikroConfig from "./mikro-orm.config";
-import express from "express";
 import { ApolloServer } from "apollo-server-express";
+import connectRedis from "connect-redis";
+import cors from "cors";
+import express from "express";
+import session from "express-session";
+import redis from "redis";
+import "reflect-metadata";
 import { buildSchema } from "type-graphql";
+import { createConnection } from "typeorm";
+import { COOKIE_NAME, __prod__ } from "./constants";
+import { Post } from "./entities/Post";
+import { User } from "./entities/User";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/User";
-import redis from "redis";
-import session from "express-session";
-import connectRedis from "connect-redis";
-import cors from "cors";
 
 const main = async () => {
-  //connect to database
-  const orm = await MikroORM.init(mikroConfig);
+  const connection = await createConnection({
+    type: "postgres",
+    database: "RedditCloneTypeORM",
+    username: "postgres",
+    password: "postgres",
+    logging: true,
+    synchronize: true,
+    entities: [Post, User],
+  });
 
-  //getMigrator().up() runs the migration after migration:create
-  await orm.getMigrator().up();
   const app = express();
 
   const RedisStore = connectRedis(session);
@@ -56,7 +62,7 @@ const main = async () => {
       validate: false,
     }),
     //Context is a special object that is accessible by all resolvers
-    context: ({ req, res }) => ({ em: orm.em, req, res, redis: redisClient }),
+    context: ({ req, res }) => ({ req, res, redis: redisClient }),
   });
 
   apolloServer.applyMiddleware({
@@ -70,6 +76,16 @@ const main = async () => {
 };
 
 main().catch((err) => console.error(err));
+
+/*
+removed before switching to TypeORM
+  //connect to database
+  const orm = await MikroORM.init(mikroConfig);
+
+  //getMigrator().up() runs the migration after migration:create
+  await orm.getMigrator().up();
+ 
+ */
 
 //basic create post stuff
 //not needed anymore, this part is kept as a reference

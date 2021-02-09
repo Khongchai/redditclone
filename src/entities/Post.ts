@@ -1,7 +1,15 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
+import {
+  Entity,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Column,
+  PrimaryGeneratedColumn,
+  BaseEntity,
+} from "typeorm";
 import { Field, ObjectType } from "type-graphql";
 
 /* 
+  From type-graphql:
   @Entity = it is now a model in a database.
   @ObjectType = It is now an object for TypeScript that we can use for our graphql query
   @Field = Properties decorated with this is now exposed to Graphql
@@ -10,20 +18,20 @@ import { Field, ObjectType } from "type-graphql";
 
 @ObjectType()
 @Entity()
-export class Post {
+export class Post extends BaseEntity {
   @Field()
-  @PrimaryKey()
+  @PrimaryGeneratedColumn()
   id!: number;
 
   @Field(() => String)
-  @Property({ type: "date" })
-  createdAt = new Date();
+  @CreateDateColumn()
+  createdAt: Date;
 
   @Field(() => String)
-  @Property({ type: "date", onUpdate: () => new Date() })
-  updatedAt = new Date();
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @Field()
-  @Property({ type: "text" })
+  @Column({ type: "text" })
   title!: string;
 }
