@@ -16,6 +16,7 @@ import { UsernamePasswordInput } from "./UsernamePasswordInput";
 import { validateRegister } from "../utils/validateRegister";
 import { sendEmail } from "../utils/sendEmail";
 import { v4 } from "uuid";
+import { promisify } from "util";
 
 @ObjectType()
 class FieldError {
@@ -57,7 +58,10 @@ export class UserResolver {
       };
     }
 
-    const userId = await redis.get(FORGET_PASSWORD_PREFIX + token);
+    const getAsync = promisify(redis.get).bind(redis);
+    const key = FORGET_PASSWORD_PREFIX + token;
+    let userId = await getAsync(key);
+
     if (!userId) {
       return {
         errors: [
@@ -87,6 +91,9 @@ export class UserResolver {
     user.password = await argon2.hash(newPassword);
     await em.persistAndFlush(user);
 
+    const delKey = promisify(redis.del).bind(redis);
+    delKey(key);
+
     //log user in after password has been changed.
     req.session.userId = user.id;
 
@@ -98,6 +105,7 @@ export class UserResolver {
     @Arg("email") email: string,
     @Ctx() { em, redis }: MyContext
   ) {
+    console.log(email);
     const user = await em.findOne(User, { email });
     if (!user) {
       //email not in db
@@ -106,10 +114,10 @@ export class UserResolver {
 
     const token = v4();
 
-    await redis.set(
+    redis.set(
       FORGET_PASSWORD_PREFIX + token,
-      user.id,
-      "ex",
+      `${user.id}`,
+      "EX",
       1000 * 60 * 60 * 24 * 3
     );
 
@@ -187,10 +195,10 @@ export class UserResolver {
     const user = await em.findOne(
       User,
       usernameOrEmail.includes("@")
-        ? { username: usernameOrEmail }
-        : { email: usernameOrEmail }
+        ? { email: usernameOrEmail }
+        : { username: usernameOrEmail }
     );
-    console.log(usernameOrEmail);
+
     if (!user) {
       return {
         errors: [

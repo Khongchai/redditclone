@@ -33,6 +33,7 @@ const UsernamePasswordInput_1 = require("./UsernamePasswordInput");
 const validateRegister_1 = require("../utils/validateRegister");
 const sendEmail_1 = require("../utils/sendEmail");
 const uuid_1 = require("uuid");
+const util_1 = require("util");
 let FieldError = class FieldError {
 };
 __decorate([
@@ -72,7 +73,9 @@ let UserResolver = class UserResolver {
                     ],
                 };
             }
-            const userId = yield redis.get(constants_1.FORGET_PASSWORD_PREFIX + token);
+            const getAsync = util_1.promisify(redis.get).bind(redis);
+            const key = constants_1.FORGET_PASSWORD_PREFIX + token;
+            let userId = yield getAsync(key);
             if (!userId) {
                 return {
                     errors: [
@@ -96,18 +99,21 @@ let UserResolver = class UserResolver {
             }
             user.password = yield argon2_1.default.hash(newPassword);
             yield em.persistAndFlush(user);
+            const delKey = util_1.promisify(redis.del).bind(redis);
+            delKey(key);
             req.session.userId = user.id;
             return { user };
         });
     }
     forgotPassword(email, { em, redis }) {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log(email);
             const user = yield em.findOne(User_1.User, { email });
             if (!user) {
                 return true;
             }
             const token = uuid_1.v4();
-            yield redis.set(constants_1.FORGET_PASSWORD_PREFIX + token, user.id, "ex", 1000 * 60 * 60 * 24 * 3);
+            redis.set(constants_1.FORGET_PASSWORD_PREFIX + token, `${user.id}`, "EX", 1000 * 60 * 60 * 24 * 3);
             yield sendEmail_1.sendEmail(email, `<a href="http://localhost:3000/change-password/${token}">reset password</a>`);
             return true;
         });
@@ -162,9 +168,8 @@ let UserResolver = class UserResolver {
     login(usernameOrEmail, password, { em, req }) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = yield em.findOne(User_1.User, usernameOrEmail.includes("@")
-                ? { username: usernameOrEmail }
-                : { email: usernameOrEmail });
-            console.log(usernameOrEmail);
+                ? { email: usernameOrEmail }
+                : { username: usernameOrEmail });
             if (!user) {
                 return {
                     errors: [

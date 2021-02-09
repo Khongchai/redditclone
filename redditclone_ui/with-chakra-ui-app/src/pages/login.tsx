@@ -2,12 +2,13 @@ import React from "react";
 import { Formik, Form } from "formik";
 import { Wrapper } from "../components/Wrapper";
 import { InputField } from "../components/InputField";
-import { Box, Button } from "@chakra-ui/react";
+import { Box, Button, Flex, Link } from "@chakra-ui/react";
 import { useLoginMutation } from "../generated/graphql";
 import { toErrorMap } from "../utils/toErrorMap";
 import { useRouter } from "next/router";
 import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
+import NextLink from "next/link";
 
 const Login: React.FC<{}> = ({}) => {
   //graphql code generator was brought in to handle the mutation
@@ -38,12 +39,18 @@ const Login: React.FC<{}> = ({}) => {
             />
             <Box mt={4}>
               <InputField
-                name="password"
+                name="Password"
                 placeholder="password"
                 label="Password"
                 type="password"
               />
             </Box>
+            <Flex justify="flex-end">
+              <NextLink href="/forgot-password">
+                <Link>Forgot password?🤦</Link>
+              </NextLink>
+            </Flex>
+
             <Button
               mt={4}
               isLoading={props.isSubmitting}
