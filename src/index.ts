@@ -15,9 +15,9 @@ import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/User";
 
 const main = async () => {
-  const connection = await createConnection({
+  await createConnection({
     type: "postgres",
-    database: "RedditCloneTypeORM",
+    database: "redditclonetypeorm",
     username: "postgres",
     password: "postgres",
     logging: true,
