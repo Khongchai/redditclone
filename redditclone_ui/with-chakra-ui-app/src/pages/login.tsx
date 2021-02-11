@@ -39,7 +39,7 @@ const Login: React.FC<{}> = ({}) => {
             />
             <Box mt={4}>
               <InputField
-                name="Password"
+                name="password"
                 placeholder="password"
                 label="Password"
                 type="password"
@@ -50,7 +50,6 @@ const Login: React.FC<{}> = ({}) => {
                 <Link>Forgot password?🤦</Link>
               </NextLink>
             </Flex>
-
             <Button
               mt={4}
               isLoading={props.isSubmitting}

@@ -198,7 +198,7 @@ export class UserResolver {
         ? { where: { email: usernameOrEmail } }
         : { where: { username: usernameOrEmail } }
     );
-
+    console.log(password);
     if (!user) {
       return {
         errors: [

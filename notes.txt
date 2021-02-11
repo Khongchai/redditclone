@@ -1,1 +1,1 @@
-About to create a create post form
+About to do global error handling.
