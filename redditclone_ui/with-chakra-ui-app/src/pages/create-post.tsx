@@ -5,23 +5,22 @@ import { useRouter } from "next/router";
 import React from "react";
 import { InputField } from "../components/InputField";
 import { Layout } from "../components/Layout";
-import { useCreatePostMutation } from "../generated/graphql";
+import { useCreatePostMutation, useMeQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
-import { toErrorMap } from "../utils/toErrorMap";
+import { useIsAuth } from "../utils/useIsAuth";
 
 export default withUrqlClient(createUrqlClient)(function CreatePost() {
   const router = useRouter();
+  useIsAuth();
   const [, createPost] = useCreatePostMutation();
+
   return (
     <Layout variant="small">
       <Formik
         initialValues={{ title: "", text: "" }}
         onSubmit={async (values, { setErrors }) => {
           const { error } = await createPost({ input: values });
-          if (error?.message.includes("not authenticated")) {
-            setErrors({ title: "Error, not authenticated" });
-            router.push("/login");
-          } else {
+          if (!error) {
             router.push("/");
           }
         }}

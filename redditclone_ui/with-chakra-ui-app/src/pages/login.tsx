@@ -14,6 +14,7 @@ const Login: React.FC<{}> = ({}) => {
   //graphql code generator was brought in to handle the mutation
   const [, login] = useLoginMutation();
   const router = useRouter();
+  console.log(router);
   return (
     <Wrapper variant="small">
       <Formik
@@ -25,7 +26,13 @@ const Login: React.FC<{}> = ({}) => {
             //setError method is provided by Formik
             setErrors(toErrorMap(response.data.login.errors));
           } else if (response.data?.login.user) {
-            router.push("/");
+            //push user to the route in the query if redirected, else just
+            //push to the homepage
+            if (typeof router.query.next === "string") {
+              router.push(router.query.next);
+            } else {
+              router.push("/");
+            }
           }
           return response;
         }}

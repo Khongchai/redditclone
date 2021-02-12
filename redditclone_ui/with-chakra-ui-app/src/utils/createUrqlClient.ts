@@ -1,13 +1,20 @@
-import { dedupExchange, fetchExchange } from "urql";
+import { cacheExchange } from "@urql/exchange-graphcache";
+import Router from "next/router";
 import {
-  LogoutMutation,
-  MeQuery,
-  MeDocument,
+  CombinedError,
+  dedupExchange,
+  errorExchange,
+  fetchExchange,
+  Operation,
+} from "urql";
+import {
   LoginMutation,
+  LogoutMutation,
+  MeDocument,
+  MeQuery,
   RegisterMutation,
 } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
-import { cacheExchange } from "@urql/exchange-graphcache";
 
 export const createUrqlClient = (ssrExchange: any) => ({
   url: "http://localhost:4000/graphql",
@@ -18,6 +25,13 @@ export const createUrqlClient = (ssrExchange: any) => ({
   //this manual update is to ensure that urql recache pages after any change is made.
   exchanges: [
     dedupExchange,
+    errorExchange({
+      onError: (error: CombinedError, operation: Operation) => {
+        if (error.message.includes("not authenticated")) {
+          Router.replace("/login");
+        }
+      },
+    }),
     cacheExchange({
       updates: {
         Mutation: {

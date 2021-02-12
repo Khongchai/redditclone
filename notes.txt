@@ -1,1 +1,1 @@
-About to do global error handling.
+Right now, index page doesn't get recached when a new post is created from the new post form

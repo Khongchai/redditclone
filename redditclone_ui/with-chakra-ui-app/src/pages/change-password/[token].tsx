@@ -12,7 +12,7 @@ import { createUrqlClient } from "../../utils/createUrqlClient";
 import { toErrorMap } from "../../utils/toErrorMap";
 import NextLink from "next/link";
 
-const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
+const ChangePassword: NextPage = () => {
   const router = useRouter();
   const [, changePassword] = useChangePasswordMutation();
   const [tokenError, setTokenError] = useState("");
@@ -23,7 +23,8 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
         onSubmit={async (values, { setErrors }) => {
           const response = await changePassword({
             newPassword: values.newPassword,
-            token,
+            token:
+              typeof router.query.token === "string" ? router.query.token : "",
           });
           if (response.data?.changePassword.errors) {
             const errorMap = toErrorMap(response.data.changePassword.errors);
@@ -69,13 +70,14 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
   );
 };
 
+//NO LONGER NEEDED; the token can be obtained from router.query.token >> you only need this only if you want to serverside render a page based on its query
 //get some info, in this case, the token in the url, and populate the file
 //before serving the file from the server.
-ChangePassword.getInitialProps = ({ query }) => {
+/* ChangePassword.getInitialProps = ({ query }) => {
   return {
     token: query.token as string,
   };
-};
+}; */
 
 export default withUrqlClient(createUrqlClient)(
   (ChangePassword as unknown) as NextComponentType

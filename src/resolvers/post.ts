@@ -11,6 +11,7 @@ import {
   UseMiddleware,
 } from "type-graphql";
 import { Post } from "../entities/Post";
+import { getConnection } from "typeorm";
 
 @InputType()
 class PostInput {
@@ -28,11 +29,25 @@ class PostInput {
 @Resolver()
 export class PostResolver {
   //() => [Post] means this query returns an object of type "Post", which is a graphql type
+  //Using a query builder and create your own query allows you to use conditions with SQL queries
+  //Below, only get cursor if it is passed in
   @Query(() => [Post])
-  //The :Promise<Post[]> type is a typescript type
-  async posts(): Promise<Post[]> {
-    //await sleep_seconds(3);
-    return Post.find();
+  async posts(
+    @Arg("limit") limit: number,
+    @Arg("cursor", () => String, { nullable: true }) cursor: string | null
+  ): Promise<Post[]> {
+    const realLimit = Math.min(50, limit);
+    const querybuilder = getConnection()
+      .getRepository(Post)
+      .createQueryBuilder("p")
+      .orderBy('"createdAt"', "DESC")
+      .take(realLimit);
+    if (cursor) {
+      querybuilder.where('"createdAt" < :cursor', {
+        cursor: new Date(parseInt(cursor)),
+      });
+    }
+    return querybuilder.getMany();
   }
 
   @Query(() => Post, { nullable: true })
