@@ -5,6 +5,7 @@ import {
   Ctx,
   Field,
   InputType,
+  Int,
   Mutation,
   Query,
   Resolver,
@@ -33,7 +34,7 @@ export class PostResolver {
   //Below, only get cursor if it is passed in
   @Query(() => [Post])
   async posts(
-    @Arg("limit") limit: number,
+    @Arg("limit", () => Int) limit: number,
     @Arg("cursor", () => String, { nullable: true }) cursor: string | null
   ): Promise<Post[]> {
     const realLimit = Math.min(50, limit);

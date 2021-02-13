@@ -13,17 +13,21 @@ import { User } from "./entities/User";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/User";
+import path from "path";
 
 const main = async () => {
-  await createConnection({
+  const conn = await createConnection({
     type: "postgres",
     database: "redditclonetypeorm",
     username: "postgres",
     password: "postgres",
     logging: true,
     synchronize: true,
+    migrations: [path.join(__dirname, "./migrations/*")],
     entities: [Post, User],
   });
+
+  await conn.runMigrations();
 
   const app = express();
 
