@@ -4,11 +4,13 @@ import {
   Arg,
   Ctx,
   Field,
+  FieldResolver,
   InputType,
   Int,
   Mutation,
   Query,
   Resolver,
+  Root,
   UseMiddleware,
 } from "type-graphql";
 import { Post } from "../entities/Post";
@@ -27,8 +29,13 @@ class PostInput {
 //Mutation is for, well, everything else that requires the manipulation of data
 //This is Django's view equivalent
 
-@Resolver()
+@Resolver(Post)
 export class PostResolver {
+  @FieldResolver(() => String)
+  textSnippet(@Root() snippet: Post) {
+    return snippet.text.slice(0, 20);
+  }
+
   //() => [Post] means this query returns an object of type "Post", which is a graphql type
   //Using a query builder and create your own query allows you to use conditions with SQL queries
   //Below, only get cursor if it is passed in
