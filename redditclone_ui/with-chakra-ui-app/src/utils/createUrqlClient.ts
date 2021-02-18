@@ -1,14 +1,12 @@
 import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
-import { fieldInfoOfKey } from "@urql/exchange-graphcache/dist/types/store";
-
 import Router from "next/router";
-import { Entity } from "typeorm";
 import {
   CombinedError,
   dedupExchange,
   errorExchange,
   fetchExchange,
   Operation,
+  stringifyVariables,
 } from "urql";
 import {
   LoginMutation,
@@ -19,17 +17,42 @@ import {
 } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 
+/*
+  Positional arguments reference for resolvers:
+
+parent
+  This is the return value of the resolver for this field's parent (the resolver for a parent field always executes before the resolvers for that field's children).
+args
+  This object contains all GraphQL arguments provided for this field.
+context
+  This is an object shared by all resolvers in a particular query.	
+info
+  {basically all infos including names}
+  It contains information about the execution state of the query, including the field name, path to the field from the root.
+*/
+
+//this entire thing is just to check whether to run the query again or not.
 export const cursorPagination = (): Resolver => {
   return (_parent, fieldArgs, cache, info) => {
+    //ex. entityKey: "Query", fieldName: posts
     const { parentKey: entityKey, fieldName } = info;
     const allFields = cache.inspectFields(entityKey);
-    console.log(allFields);
+    //example: in the case of "posts" query, filter out everything that are also "query" but are not "posts".
     const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
+    console.log(fieldInfos);
     const size = fieldInfos.length;
     if (size === 0) {
       return undefined;
     }
-
+    //construct the name of this graphql query, eg. post(limit:10)
+    const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+    //check if this query has been cached (if not cached, it's new). If the stuff is cached, retrieve it.
+    const cachedStuff = cache.resolve(entityKey, fieldKey);
+    //the query will be able to run next time only if info.partial is set to true(like only partially complete, sothere's more info to be had),
+    //we flip the cachedStuff because if a query does not exist in the cache, we would want to rerun the query and store it.
+    //and we do that by turning the "not exist" status into true, and assign it to info.partial to tell URQL that the data is only
+    //partially fetched, fetch more pls.
+    info.partial = !cachedStuff;
     const results: string[] = [];
     fieldInfos.forEach((field) => {
       const data = cache.resolve(entityKey, field.fieldKey) as string[];
@@ -37,60 +60,9 @@ export const cursorPagination = (): Resolver => {
     });
 
     return results;
+    //if info.partial is true, another query is run immediately after this return statement;
+    //after which this function is run again.
   };
-
-  /*     const visited = new Set();
-    let result: NullArray<string> = [];
-    let prevOffset: number | null = null;
-
-    for (let i = 0; i < size; i++) {
-      const { fieldKey, arguments: args } = fieldInfos[i];
-      if (args === null || !compareArgs(fieldArgs, args)) {
-        continue;
-      }
-
-      const links = cache.resolve(entityKey, fieldKey) as string[];
-      const currentOffset = args[offsetArgument];
-
-      if (
-        links === null ||
-        links.length === 0 ||
-        typeof currentOffset !== "number"
-      ) {
-        continue;
-      }
-
-      const tempResult: NullArray<string> = [];
-
-      for (let j = 0; j < links.length; j++) {
-        const link = links[j];
-        if (visited.has(link)) continue;
-        tempResult.push(link);
-        visited.add(link);
-      }
-
-      if (
-        (!prevOffset || currentOffset > prevOffset) ===
-        (mergeMode === "after")
-      ) {
-        result = [...result, ...tempResult];
-      } else {
-        result = [...tempResult, ...result];
-      }
-
-      prevOffset = currentOffset;
-    }
-
-    const hasCurrentPage = cache.resolve(entityKey, fieldName, fieldArgs);
-    if (hasCurrentPage) {
-      return result;
-    } else if (!(info as any).store.schema) {
-      return undefined;
-    } else {
-      info.partial = true;
-      return result;
-    }
-  }; */
 };
 
 export const createUrqlClient = (ssrExchange: any) => ({

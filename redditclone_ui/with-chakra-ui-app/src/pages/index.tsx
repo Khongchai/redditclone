@@ -12,12 +12,16 @@ import {
 } from "@chakra-ui/react";
 import { Layout } from "../components/Layout";
 import NextLink from "next/link";
+import { useState } from "react";
 
 const Index = () => {
+  const [variables, setVariables] = useState({
+    limit: 10,
+    cursor: null as string | null,
+  });
+
   const [{ data, fetching }] = usePostsQuery({
-    variables: {
-      limit: 5,
-    },
+    variables,
   });
   if (!fetching && !data) {
     return <>No data</>;
@@ -47,7 +51,17 @@ const Index = () => {
       )}
       {data ? (
         <Flex>
-          <Button isLoading={fetching} m={"auto"}>
+          <Button
+            onClick={() =>
+              //for every click, set the limit and the position of the cursor.
+              setVariables({
+                limit: variables.limit,
+                cursor: data.posts[data.posts.length - 1].createdAt,
+              })
+            }
+            isLoading={fetching}
+            m={"auto"}
+          >
             Load more
           </Button>
         </Flex>
