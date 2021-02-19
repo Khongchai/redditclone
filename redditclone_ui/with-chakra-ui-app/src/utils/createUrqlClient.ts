@@ -39,7 +39,6 @@ export const cursorPagination = (): Resolver => {
     const allFields = cache.inspectFields(entityKey);
     //example: in the case of "posts" query, filter out everything that are also "query" but are not "posts".
     const fieldInfos = allFields.filter((info) => info.fieldName === fieldName);
-    console.log(fieldInfos);
     const size = fieldInfos.length;
     if (size === 0) {
       return undefined;
@@ -47,19 +46,36 @@ export const cursorPagination = (): Resolver => {
     //construct the name of this graphql query, eg. post(limit:10)
     const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
     //check if this query has been cached (if not cached, it's new). If the stuff is cached, retrieve it.
-    const cachedStuff = cache.resolve(entityKey, fieldKey);
+    const cachedStuff = cache.resolve(
+      cache.resolve(entityKey, fieldKey) as string,
+      "posts"
+    );
     //the query will be able to run next time only if info.partial is set to true(like only partially complete, sothere's more info to be had),
     //we flip the cachedStuff because if a query does not exist in the cache, we would want to rerun the query and store it.
     //and we do that by turning the "not exist" status into true, and assign it to info.partial to tell URQL that the data is only
     //partially fetched, fetch more pls.
     info.partial = !cachedStuff;
     const results: string[] = [];
+    let hasMore = true;
+
     fieldInfos.forEach((field) => {
-      const data = cache.resolve(entityKey, field.fieldKey) as string[];
+      //1st time => Query posts({"limit":10}) means get me the key leading to this entity
+      const key = cache.resolve(entityKey, field.fieldKey) as string;
+      //2nd time => pass in the key
+      const data = cache.resolve(key, "posts") as string[];
+      const _hasMore = cache.resolve(key, "hasMore");
+      if (_hasMore) {
+        hasMore = _hasMore as boolean;
+      }
       results.push(...data);
     });
 
-    return results;
+    return {
+      //typename = name of typescript type
+      __typename: "PaginatedPosts",
+      hasmore: hasMore,
+      posts: results,
+    };
     //if info.partial is true, another query is run immediately after this return statement;
     //after which this function is run again.
   };
@@ -82,6 +98,9 @@ export const createUrqlClient = (ssrExchange: any) => ({
       },
     }),
     cacheExchange({
+      keys: {
+        PaginatedPosts: () => null,
+      },
       resolvers: {
         Query: {
           //name should match the name of query in the graphql file

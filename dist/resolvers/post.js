@@ -39,6 +39,19 @@ __decorate([
 PostInput = __decorate([
     type_graphql_1.InputType()
 ], PostInput);
+let PaginatedPosts = class PaginatedPosts {
+};
+__decorate([
+    type_graphql_1.Field(() => [Post_1.Post]),
+    __metadata("design:type", Array)
+], PaginatedPosts.prototype, "posts", void 0);
+__decorate([
+    type_graphql_1.Field(),
+    __metadata("design:type", Boolean)
+], PaginatedPosts.prototype, "hasMore", void 0);
+PaginatedPosts = __decorate([
+    type_graphql_1.ObjectType()
+], PaginatedPosts);
 let PostResolver = class PostResolver {
     textSnippet(snippet) {
         return snippet.text.slice(0, 20);
@@ -46,17 +59,22 @@ let PostResolver = class PostResolver {
     posts(limit, cursor) {
         return __awaiter(this, void 0, void 0, function* () {
             const realLimit = Math.min(50, limit);
+            const realLimitPlusOne = realLimit + 1;
             const querybuilder = typeorm_1.getConnection()
                 .getRepository(Post_1.Post)
                 .createQueryBuilder("p")
                 .orderBy('"createdAt"', "DESC")
-                .take(realLimit);
+                .take(realLimitPlusOne);
             if (cursor) {
                 querybuilder.where('"createdAt" < :cursor', {
                     cursor: new Date(parseInt(cursor)),
                 });
             }
-            return querybuilder.getMany();
+            const posts = yield querybuilder.getMany();
+            return {
+                posts: posts.slice(0, realLimit),
+                hasMore: posts.length > realLimit ? true : false,
+            };
         });
     }
     post(id) {
@@ -94,7 +112,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], PostResolver.prototype, "textSnippet", null);
 __decorate([
-    type_graphql_1.Query(() => [Post_1.Post]),
+    type_graphql_1.Query(() => PaginatedPosts),
     __param(0, type_graphql_1.Arg("limit", () => type_graphql_1.Int)),
     __param(1, type_graphql_1.Arg("cursor", () => String, { nullable: true })),
     __metadata("design:type", Function),

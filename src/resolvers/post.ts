@@ -8,6 +8,7 @@ import {
   InputType,
   Int,
   Mutation,
+  ObjectType,
   Query,
   Resolver,
   Root,
@@ -24,6 +25,15 @@ class PostInput {
   text: string;
 }
 
+@ObjectType()
+class PaginatedPosts {
+  @Field(() => [Post])
+  posts: Post[];
+
+  @Field()
+  hasMore: boolean;
+}
+
 //resolver queries for whatever you have in your entities.
 //Query = for getting data
 //Mutation is for, well, everything else that requires the manipulation of data
@@ -31,6 +41,7 @@ class PostInput {
 
 @Resolver(Post)
 export class PostResolver {
+  //FieldResolver is for when a field is purely calculable from other fields.
   @FieldResolver(() => String)
   textSnippet(@Root() snippet: Post) {
     return snippet.text.slice(0, 20);
@@ -39,23 +50,32 @@ export class PostResolver {
   //() => [Post] means this query returns an object of type "Post", which is a graphql type
   //Using a query builder and create your own query allows you to use conditions with SQL queries
   //Below, only get cursor if it is passed in
-  @Query(() => [Post])
+  @Query(() => PaginatedPosts)
   async posts(
     @Arg("limit", () => Int) limit: number,
     @Arg("cursor", () => String, { nullable: true }) cursor: string | null
-  ): Promise<Post[]> {
+  ): Promise<PaginatedPosts> {
+    //fetch n posts, instead fetch n + 1, easy to validate if there is anymore left
+    //we'll slice in the return statement to the original n.
     const realLimit = Math.min(50, limit);
+    const realLimitPlusOne = realLimit + 1;
     const querybuilder = getConnection()
       .getRepository(Post)
       .createQueryBuilder("p")
       .orderBy('"createdAt"', "DESC")
-      .take(realLimit);
+      .take(realLimitPlusOne);
     if (cursor) {
       querybuilder.where('"createdAt" < :cursor', {
         cursor: new Date(parseInt(cursor)),
       });
     }
-    return querybuilder.getMany();
+
+    const posts = await querybuilder.getMany();
+
+    return {
+      posts: posts.slice(0, realLimit),
+      hasMore: posts.length > realLimit ? true : false,
+    };
   }
 
   @Query(() => Post, { nullable: true })

@@ -16,7 +16,7 @@ import { useState } from "react";
 
 const Index = () => {
   const [variables, setVariables] = useState({
-    limit: 10,
+    limit: 33,
     cursor: null as string | null,
   });
 
@@ -40,7 +40,7 @@ const Index = () => {
       {!data && fetching ? (
         <Text ml={4}>loading...</Text>
       ) : (
-        data!.posts.map((post) => (
+        data!.posts.posts.map((post) => (
           <Stack spacing={8} _last={{ marginBottom: "10px" }}>
             <Box p={5} shadow="md" key={post.id} borderWidth="1px">
               <Heading fontSize="xl">{post.title}</Heading>
@@ -49,14 +49,14 @@ const Index = () => {
           </Stack>
         ))
       )}
-      {data ? (
+      {data && data.posts.hasMore ? (
         <Flex>
           <Button
             onClick={() =>
               //for every click, set the limit and the position of the cursor.
               setVariables({
                 limit: variables.limit,
-                cursor: data.posts[data.posts.length - 1].createdAt,
+                cursor: data.posts.posts[data.posts.posts.length - 1].createdAt,
               })
             }
             isLoading={fetching}
