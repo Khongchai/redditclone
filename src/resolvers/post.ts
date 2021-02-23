@@ -16,6 +16,7 @@ import {
 } from "type-graphql";
 import { Post } from "../entities/Post";
 import { getConnection } from "typeorm";
+import { Updoot } from "../entities/Updoot";
 
 @InputType()
 class PostInput {
@@ -47,6 +48,33 @@ export class PostResolver {
     return snippet.text.slice(0, 20);
   }
 
+  @Mutation(() => Boolean)
+  @UseMiddleware(isAuth)
+  async vote(
+    @Arg("postId", () => Int) postId: number,
+    @Arg("value", () => Int) value: number,
+    @Ctx() { req }: MyContext
+  ) {
+    const isUpdoot = value !== -1;
+    const realValue = isUpdoot ? 1 : -1;
+    const { userId } = req.session;
+    await Updoot.insert({
+      userId,
+      postId,
+      value: realValue,
+    });
+    await getConnection().query(
+      `
+        update post 
+        set points = points + $1
+        where id = $2
+      `,
+      [realValue, postId]
+    );
+
+    return true;
+  }
+
   //() => [Post] means this query returns an object of type "Post", which is a graphql type
   //Using a query builder and create your own query allows you to use conditions with SQL queries
   //Below, only get cursor if it is passed in
@@ -59,18 +87,41 @@ export class PostResolver {
     //we'll slice in the return statement to the original n.
     const realLimit = Math.min(50, limit);
     const realLimitPlusOne = realLimit + 1;
-    const querybuilder = getConnection()
+    const replacements: any[] = [realLimitPlusOne];
+
+    if (cursor) {
+      replacements.push(new Date(parseInt(cursor)));
+    }
+
+    const posts = await getConnection().query(
+      `
+      select p.*,
+      json_build_object('username', u.username, 
+      'id', u.id, 'email', 
+      u.email) creator
+      from post p 
+      inner join public.user u on u.id = p."creatorId"
+      ${cursor ? `where p."createdAt" < $2` : ""}
+      order by p."createdAt" DESC
+      limit $1
+    `,
+      replacements
+    );
+
+    /*  const querybuilder = getConnection()
       .getRepository(Post)
       .createQueryBuilder("p")
-      .orderBy('"createdAt"', "DESC")
+      .innerJoinAndSelect("p.creator", "u", "u.id = 'p.creatorId'")
+      .orderBy('p."createdAt"', "DESC")
       .take(realLimitPlusOne);
-    if (cursor) {
-      querybuilder.where('"createdAt" < :cursor', {
+
+        if (cursor) {
+      querybuilder.where('p."createdAt" < :cursor', {
         cursor: new Date(parseInt(cursor)),
       });
     }
 
-    const posts = await querybuilder.getMany();
+    const posts = await querybuilder.getMany(); */
 
     return {
       posts: posts.slice(0, realLimit),
