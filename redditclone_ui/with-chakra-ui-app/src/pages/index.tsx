@@ -16,7 +16,7 @@ import { useState } from "react";
 
 const Index = () => {
   const [variables, setVariables] = useState({
-    limit: 33,
+    limit: 15,
     cursor: null as string | null,
   });
 
@@ -43,7 +43,13 @@ const Index = () => {
         data!.posts.posts.map((post) => (
           <Stack spacing={8} _last={{ marginBottom: "10px" }}>
             <Box p={5} shadow="md" key={post.id} borderWidth="1px">
-              <Heading fontSize="xl">{post.title}</Heading>
+              <Flex>
+                <Heading fontSize="xl">{post.title}</Heading>{" "}
+                <Text ml={"auto"}>
+                  Posted By: <b>{post.creator.username}</b>
+                </Text>
+              </Flex>
+
               <Text mt={4}>{post.textSnippet + "..."}</Text>
             </Box>
           </Stack>
