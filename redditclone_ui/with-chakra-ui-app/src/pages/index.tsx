@@ -1,6 +1,7 @@
 import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
 import { usePostsQuery } from "../generated/graphql";
+
 import {
   Box,
   Heading,
@@ -12,7 +13,8 @@ import {
 } from "@chakra-ui/react";
 import { Layout } from "../components/Layout";
 import NextLink from "next/link";
-import { useState } from "react";
+import React, { useState } from "react";
+import { UpdootSection } from "../components/UpdootSection";
 
 const Index = () => {
   const [variables, setVariables] = useState({
@@ -44,13 +46,19 @@ const Index = () => {
           <Stack spacing={8} _last={{ marginBottom: "10px" }}>
             <Box p={5} shadow="md" key={post.id} borderWidth="1px">
               <Flex>
-                <Heading fontSize="xl">{post.title}</Heading>{" "}
-                <Text ml={"auto"}>
-                  Posted By: <b>{post.creator.username}</b>
-                </Text>
+                <Flex flexDir={"column"} align="center">
+                  <UpdootSection post={post} />
+                </Flex>
+                <Box p="0 0 0 1em" w={"100%"}>
+                  <Flex>
+                    <Heading fontSize="xl">{post.title}</Heading>
+                    <Text ml={"auto"}>
+                      Posted By: <b>{post.creator.username}</b>
+                    </Text>
+                  </Flex>
+                  <Text mt={4}>{post.textSnippet + "..."}</Text>
+                </Box>
               </Flex>
-
-              <Text mt={4}>{post.textSnippet + "..."}</Text>
             </Box>
           </Stack>
         ))

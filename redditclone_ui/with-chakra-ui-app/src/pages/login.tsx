@@ -11,17 +11,14 @@ import { createUrqlClient } from "../utils/createUrqlClient";
 import NextLink from "next/link";
 
 const Login: React.FC<{}> = ({}) => {
-  //graphql code generator was brought in to handle the mutation
   const [, login] = useLoginMutation();
   const router = useRouter();
-  console.log(router);
   return (
     <Wrapper variant="small">
       <Formik
         initialValues={{ usernameOrEmail: "", password: "" }}
         onSubmit={async (values, { setErrors }) => {
           const response = await login(values);
-          console.log(response.data?.login.errors);
           if (response.data?.login.errors) {
             //setError method is provided by Formik
             setErrors(toErrorMap(response.data.login.errors));
