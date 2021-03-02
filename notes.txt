@@ -1,1 +1,1 @@
-Just finished implementing basic upload functionality: https://youtu.be/I6ypD7qv3Z8?t=33740
+About to update urql's cache for vote: https://youtu.be/I6ypD7qv3Z8?t=34325
