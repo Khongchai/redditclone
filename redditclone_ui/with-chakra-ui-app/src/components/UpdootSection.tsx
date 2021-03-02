@@ -14,7 +14,7 @@ interface UpdootSectionProps {
 }
 
 export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
-  const [vote] = useVoteMutation();
+  const [, vote] = useVoteMutation();
   //We have to create our own loading state indicator because we do not know whether
   //the "fetching" up there is for updoot or downdoot
   const [loadingState, setLoadingState] = useState<
@@ -40,7 +40,6 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
       <IconButton
         onClick={async () => {
           setLoadingState("downdoot-loading");
-
           vote({
             postId: post.id,
             value: -1,
