@@ -14,8 +14,10 @@ import {
   MeDocument,
   MeQuery,
   RegisterMutation,
+  VoteMutationVariables,
 } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
+import gql from "graphql-tag";
 
 /*
   Positional arguments reference for resolvers:
@@ -109,6 +111,39 @@ export const createUrqlClient = (ssrExchange: any) => ({
       },
       updates: {
         Mutation: {
+          vote: (_result, args, cache, info) => {
+            const { postId, value } = args as VoteMutationVariables;
+            const data: any = cache.readFragment(
+              gql`
+                fragment _ on Post {
+                  id
+                  points
+                  voteStatus
+                }
+              `,
+              { id: postId }
+            );
+            console.log(data);
+            if (data) {
+              if (data.voteStatus === args.value) {
+                //For example, if vote status is one and we are trying to upvote with a 1, we don't do anything.
+                return;
+              }
+              const newPoints =
+                //if first time voting, value should remains the same, else, if changing vote,
+                //remove old vote and add new
+                data.points + (!data.voteStatus ? 1 : 2) * value;
+              cache.writeFragment(
+                gql`
+                  fragment __ on Post {
+                    points
+                    voteStatus
+                  }
+                `,
+                { id: postId, points: newPoints, voteStatus: value }
+              );
+            }
+          },
           createPost: (_result, args, cache, info) => {
             const allFields = cache.inspectFields("Query");
             const fieldInfos = allFields.filter(

@@ -1,1 +1,1 @@
-About to update urql's cache for vote: https://youtu.be/I6ypD7qv3Z8?t=34325
+About to send cookie from nextjs striaght to graphql: https://youtu.be/I6ypD7qv3Z8?t=35936

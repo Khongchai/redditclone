@@ -54,7 +54,7 @@ export class PostResolver {
     @Arg("postId", () => Int) postId: number,
     @Arg("value", () => Int) value: number,
     @Ctx() { req }: MyContext
-  ) {
+  ): Promise<boolean> {
     const isUpdoot = value !== -1;
     const realValue = isUpdoot ? 1 : -1;
     const { userId } = req.session;
@@ -105,6 +105,7 @@ export class PostResolver {
   //Below, only get cursor if it is passed in
   @Query(() => PaginatedPosts)
   async posts(
+    @Ctx() { req }: MyContext,
     @Arg("limit", () => Int) limit: number,
     @Arg("cursor", () => String, { nullable: true }) cursor: string | null
   ): Promise<PaginatedPosts> {
@@ -114,6 +115,12 @@ export class PostResolver {
     const realLimitPlusOne = realLimit + 1;
     const replacements: any[] = [realLimitPlusOne];
 
+    let cursorIndex = 3;
+    if (req.session.userId) {
+      replacements.push(req.session.userId);
+      cursorIndex = replacements.length;
+    }
+
     if (cursor) {
       replacements.push(new Date(parseInt(cursor)));
     }
@@ -121,12 +128,19 @@ export class PostResolver {
     const posts = await getConnection().query(
       `
       select p.*,
-      json_build_object('username', u.username, 
-      'id', u.id, 'email', 
-      u.email) creator
+      json_build_object(
+      'username', u.username, 
+      'id', u.id, 
+      'email', u.email) 
+      creator,
+      ${
+        req.session.userId
+          ? '(select value from updoot where "userId" = $2 and "postId" = p.id) "voteStatus"'
+          : 'null as "voteStatus"'
+      }
       from post p 
       inner join public.user u on u.id = p."creatorId"
-      ${cursor ? `where p."createdAt" < $2` : ""}
+      ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
       order by p."createdAt" DESC
       limit $1
     `,

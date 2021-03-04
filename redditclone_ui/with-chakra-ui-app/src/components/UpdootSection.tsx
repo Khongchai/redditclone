@@ -20,10 +20,14 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
   const [loadingState, setLoadingState] = useState<
     "updoot-loading" | "downdoot-loading" | "not-loading"
   >("not-loading");
+
   return (
     <Flex flexDir={"column"} align="center">
       <IconButton
         onClick={async () => {
+          if (post.voteStatus === 1) {
+            return;
+          }
           setLoadingState("updoot-loading");
           await vote({
             postId: post.id,
@@ -31,6 +35,7 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
           });
           setLoadingState("not-loading");
         }}
+        colorScheme={post.voteStatus === 1 ? "green" : undefined}
         isLoading={loadingState === "updoot-loading"}
         aria-label="upvote-icon"
         icon={<ChevronUpIcon />}
@@ -39,6 +44,9 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
       {post.points}
       <IconButton
         onClick={async () => {
+          if (post.voteStatus === -1) {
+            return;
+          }
           setLoadingState("downdoot-loading");
           vote({
             postId: post.id,
@@ -46,6 +54,8 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({ post }) => {
           });
           setLoadingState("not-loading");
         }}
+        colorScheme={post.voteStatus === -1 ? "orange" : undefined}
+        variant="solid"
         isLoading={loadingState === "downdoot-loading"}
         aria-label="downvote-icon"
         icon={<ChevronDownIcon />}
