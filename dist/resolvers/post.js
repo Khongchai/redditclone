@@ -93,11 +93,11 @@ let PostResolver = class PostResolver {
             let cursorIndex = 3;
             if (req.session.userId) {
                 replacements.push(req.session.userId);
-                cursorIndex = replacements.length;
             }
             if (cursor) {
                 replacements.push(new Date(parseInt(cursor)));
             }
+            cursorIndex = replacements.length;
             const posts = yield typeorm_1.getConnection().query(`
       select p.*,
       json_build_object(
