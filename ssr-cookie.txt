@@ -1,0 +1,7 @@
+ssr
+    //cookie lost in next.js
+    //for ssr, you will have to forward the cookie to next.js server
+    browser -> next.js -> graphql api
+client side
+    //cookie sent directly to api
+    browser -> graphql api

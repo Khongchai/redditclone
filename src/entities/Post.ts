@@ -39,6 +39,7 @@ export class Post extends BaseEntity {
   @Column({ type: "int", default: 0 })
   points!: number;
 
+  //property not persisted to database; a calculated prop
   @Field(() => Int, { nullable: true })
   voteStatus: number | null; // 1, -1, or null
 

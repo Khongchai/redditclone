@@ -35,11 +35,6 @@ class PaginatedPosts {
   hasMore: boolean;
 }
 
-//resolver queries for whatever you have in your entities.
-//Query = for getting data
-//Mutation is for, well, everything else that requires the manipulation of data
-//This is Django's view equivalent
-
 @Resolver(Post)
 export class PostResolver {
   //FieldResolver is for when a field is purely calculable from other fields.
@@ -148,21 +143,6 @@ export class PostResolver {
       replacements
     );
 
-    /*  const querybuilder = getConnection()
-      .getRepository(Post)
-      .createQueryBuilder("p")
-      .innerJoinAndSelect("p.creator", "u", "u.id = 'p.creatorId'")
-      .orderBy('p."createdAt"', "DESC")
-      .take(realLimitPlusOne);
-
-        if (cursor) {
-      querybuilder.where('p."createdAt" < :cursor', {
-        cursor: new Date(parseInt(cursor)),
-      });
-    }
-
-    const posts = await querybuilder.getMany(); */
-
     return {
       posts: posts.slice(0, realLimit),
       hasMore: posts.length > realLimit ? true : false,
@@ -170,8 +150,9 @@ export class PostResolver {
   }
 
   @Query(() => Post, { nullable: true })
-  post(@Arg("id") id: number): Promise<Post | undefined> {
-    return Post.findOne(id);
+  async post(@Arg("id", () => Int) id: number): Promise<Post | undefined> {
+    const requestedPost = await Post.findOne(id, { relations: ["creator"] });
+    return requestedPost;
   }
 
   @Mutation(() => Post)

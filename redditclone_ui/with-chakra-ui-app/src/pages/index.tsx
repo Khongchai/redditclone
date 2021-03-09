@@ -25,20 +25,13 @@ const Index = () => {
   const [{ data, fetching }] = usePostsQuery({
     variables,
   });
+
   if (!fetching && !data) {
     return <>No data</>;
   }
+
   return (
     <Layout variant="regular">
-      <Flex align="center">
-        <Heading>RedditClone</Heading>
-        <NextLink href="/create-post">
-          <Link ml="auto">Create post</Link>
-        </NextLink>
-      </Flex>
-      <Heading as="h1" ml={4}>
-        Posts:
-      </Heading>
       {!data && fetching ? (
         <Text ml={4}>loading...</Text>
       ) : (
@@ -51,7 +44,11 @@ const Index = () => {
                 </Flex>
                 <Box p="0 0 0 1em" w={"100%"}>
                   <Flex>
-                    <Heading fontSize="xl">{post.title}</Heading>
+                    <NextLink href="/post/[id]" as={`/post/${post.id}`}>
+                      <Link>
+                        <Heading fontSize="xl">{post.title}</Heading>
+                      </Link>
+                    </NextLink>
                     <Text ml={"auto"}>
                       Posted By: <b>{post.creator.username}</b>
                     </Text>
