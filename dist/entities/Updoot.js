@@ -25,7 +25,9 @@ __decorate([
     __metadata("design:type", Number)
 ], Updoot.prototype, "userId", void 0);
 __decorate([
-    typeorm_1.ManyToOne(() => User_1.User, (user) => user.updoots),
+    typeorm_1.ManyToOne(() => User_1.User, (user) => user.updoots, {
+        onDelete: "CASCADE",
+    }),
     __metadata("design:type", User_1.User)
 ], Updoot.prototype, "user", void 0);
 __decorate([

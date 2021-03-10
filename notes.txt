@@ -1,2 +1,1 @@
 About to do delete posts: 
-About to send cookie from nextjs striaght to graphql because the color buttons didn't render blue and red on first load. watch video a bit longer to get context.: https://youtu.be/I69ypD7qv3Z8?t=35964

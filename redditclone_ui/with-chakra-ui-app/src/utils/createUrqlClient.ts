@@ -9,6 +9,7 @@ import {
   stringifyVariables,
 } from "urql";
 import {
+  DeletePostMutationVariables,
   LoginMutation,
   LogoutMutation,
   MeDocument,
@@ -118,6 +119,12 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
         },
         updates: {
           Mutation: {
+            deletePost: (_result, args, cache, info) => {
+              cache.invalidate({
+                __typename: "Post",
+                id: (args as DeletePostMutationVariables).id,
+              });
+            },
             vote: (_result, args, cache, info) => {
               const { postId, value } = args as VoteMutationVariables;
               const data: any = cache.readFragment(
@@ -130,7 +137,6 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
                 `,
                 { id: postId }
               );
-              console.log(data);
               if (data) {
                 if (data.voteStatus === args.value) {
                   //For example, if vote status is one and we are trying to upvote with a 1, we don't do anything.
