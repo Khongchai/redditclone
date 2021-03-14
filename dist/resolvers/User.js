@@ -173,7 +173,6 @@ let UserResolver = class UserResolver {
             const user = yield User_1.User.findOne(usernameOrEmail.includes("@")
                 ? { where: { email: usernameOrEmail } }
                 : { where: { username: usernameOrEmail } });
-            console.log(password);
             if (!user) {
                 return {
                     errors: [

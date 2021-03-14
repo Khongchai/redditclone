@@ -22,7 +22,7 @@ const main = async () => {
     database: "redditclonetypeorm",
     username: "postgres",
     password: "postgres",
-    logging: true,
+    logging: false,
     synchronize: true,
     migrations: [path.join(__dirname, "./migrations/*")],
     entities: [Post, User, Updoot],

@@ -158,7 +158,7 @@ let PostResolver = class PostResolver {
             if ((post === null || post === void 0 ? void 0 : post.creatorId) !== req.session.userId) {
                 throw new Error("not authorized");
             }
-            yield Post_1.Post.delete(post);
+            yield Post_1.Post.remove(post);
             return true;
         });
     }
@@ -208,7 +208,7 @@ __decorate([
 __decorate([
     type_graphql_1.Mutation(() => Post_1.Post, { nullable: true }),
     type_graphql_1.UseMiddleware(isAuth_1.isAuth),
-    __param(0, type_graphql_1.Arg("id")),
+    __param(0, type_graphql_1.Arg("id", () => type_graphql_1.Int)),
     __param(1, type_graphql_1.Arg("title")),
     __param(2, type_graphql_1.Arg("text")),
     __param(3, type_graphql_1.Ctx()),

@@ -35,7 +35,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         database: "redditclonetypeorm",
         username: "postgres",
         password: "postgres",
-        logging: true,
+        logging: false,
         synchronize: true,
         migrations: [path_1.default.join(__dirname, "./migrations/*")],
         entities: [Post_1.Post, User_1.User, Updoot_1.Updoot],

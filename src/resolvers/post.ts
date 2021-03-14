@@ -167,7 +167,7 @@ export class PostResolver {
   @Mutation(() => Post, { nullable: true })
   @UseMiddleware(isAuth)
   async updatePost(
-    @Arg("id") id: number,
+    @Arg("id", () => Int) id: number,
     @Arg("title") title: string,
     @Arg("text") text: string,
     @Ctx() { req }: MyContext
@@ -203,7 +203,6 @@ export class PostResolver {
     if (post?.creatorId !== req.session.userId) {
       throw new Error("not authorized");
     }
-
     /*     //without cascade, you return like this, deleting each separately
     await Updoot.delete({ postId: id });
     await Post.delete({ id });
@@ -211,7 +210,7 @@ export class PostResolver {
 
  */
     //with cascade, just call
-    await Post.delete(post);
+    await Post.remove(post);
 
     return true;
   }

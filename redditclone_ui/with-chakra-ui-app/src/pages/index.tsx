@@ -1,6 +1,10 @@
 import { withUrqlClient } from "next-urql";
 import { createUrqlClient } from "../utils/createUrqlClient";
-import { useDeletePostMutation, usePostsQuery } from "../generated/graphql";
+import {
+  useDeletePostMutation,
+  useMeQuery,
+  usePostsQuery,
+} from "../generated/graphql";
 
 import {
   Box,
@@ -16,7 +20,8 @@ import { Layout } from "../components/Layout";
 import NextLink from "next/link";
 import React, { useState } from "react";
 import { UpdootSection } from "../components/UpdootSection";
-import { DeleteIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
+import { EditDeletePostButtons } from "../components/EditDeletePostButtons";
 
 const Index = () => {
   const [variables, setVariables] = useState({
@@ -29,7 +34,6 @@ const Index = () => {
   });
 
   const [deleteIndex, setDeleteIndex] = useState(0);
-
   const [, deletePost] = useDeletePostMutation();
 
   if (!fetching && !data) {
@@ -61,16 +65,11 @@ const Index = () => {
                           Posted By: <b>{post.creator.username}</b>
                         </Text>
                       </Flex>
+
                       <Text mt={4}>{post.textSnippet + "..."}</Text>
-                      <IconButton
-                        ml="auto"
-                        icon={<DeleteIcon />}
-                        aria-label="Delete Post"
-                        colorScheme="orange"
-                        onClick={() => {
-                          setDeleteIndex(deleteIndex + 1);
-                          deletePost({ id: post.id });
-                        }}
+                      <EditDeletePostButtons
+                        id={post.id}
+                        creatorId={post.creator.id}
                       />
                     </Flex>
                   </Box>
@@ -86,7 +85,6 @@ const Index = () => {
             onClick={() =>
               //for every click, set the limit and the position of the cursor.
               {
-                console.log(data.posts.posts.length);
                 setVariables({
                   limit: variables.limit,
                   cursor:
