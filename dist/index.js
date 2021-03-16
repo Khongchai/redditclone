@@ -27,6 +27,7 @@ const User_1 = require("./entities/User");
 const hello_1 = require("./resolvers/hello");
 const post_1 = require("./resolvers/post");
 const User_2 = require("./resolvers/User");
+const createUserLoader_1 = require("./utils/createUserLoader");
 const path_1 = __importDefault(require("path"));
 const Updoot_1 = require("./entities/Updoot");
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -35,7 +36,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         database: "redditclonetypeorm",
         username: "postgres",
         password: "postgres",
-        logging: false,
+        logging: true,
         synchronize: true,
         migrations: [path_1.default.join(__dirname, "./migrations/*")],
         entities: [Post_1.Post, User_1.User, Updoot_1.Updoot],
@@ -68,7 +69,12 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             resolvers: [hello_1.HelloResolver, post_1.PostResolver, User_2.UserResolver],
             validate: false,
         }),
-        context: ({ req, res }) => ({ req, res, redis: redisClient }),
+        context: ({ req, res }) => ({
+            req,
+            res,
+            redis: redisClient,
+            userLoader: createUserLoader_1.createUserLoader(),
+        }),
     });
     apolloServer.applyMiddleware({
         app,

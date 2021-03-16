@@ -27,6 +27,7 @@ const type_graphql_1 = require("type-graphql");
 const Post_1 = require("../entities/Post");
 const typeorm_1 = require("typeorm");
 const Updoot_1 = require("../entities/Updoot");
+const User_1 = require("../entities/User");
 let PostInput = class PostInput {
 };
 __decorate([
@@ -57,6 +58,10 @@ let PostResolver = class PostResolver {
     textSnippet(snippet) {
         return snippet.text.slice(0, 20);
     }
+    creator(post, { userLoader }) {
+        return userLoader.load(post.creatorId);
+    }
+    voteStatus(post, { userLoader }) { }
     vote(postId, value, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
             const isUpdoot = value !== -1;
@@ -100,16 +105,10 @@ let PostResolver = class PostResolver {
             cursorIndex = replacements.length;
             const posts = yield typeorm_1.getConnection().query(`
       select p.*,
-      json_build_object(
-      'username', u.username, 
-      'id', u.id, 
-      'email', u.email) 
-      creator,
       ${req.session.userId
                 ? '(select value from updoot where "userId" = $2 and "postId" = p.id) "voteStatus"'
                 : 'null as "voteStatus"'}
       from post p 
-      inner join public.user u on u.id = p."creatorId"
       ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
       order by p."createdAt" DESC
       limit $1
@@ -122,7 +121,7 @@ let PostResolver = class PostResolver {
     }
     post(id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const requestedPost = yield Post_1.Post.findOne(id, { relations: ["creator"] });
+            const requestedPost = yield Post_1.Post.findOne(id);
             return requestedPost;
         });
     }
@@ -170,6 +169,20 @@ __decorate([
     __metadata("design:paramtypes", [Post_1.Post]),
     __metadata("design:returntype", void 0)
 ], PostResolver.prototype, "textSnippet", null);
+__decorate([
+    type_graphql_1.FieldResolver(() => User_1.User),
+    __param(0, type_graphql_1.Root()), __param(1, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Post_1.Post, Object]),
+    __metadata("design:returntype", void 0)
+], PostResolver.prototype, "creator", null);
+__decorate([
+    type_graphql_1.FieldResolver(() => type_graphql_1.Int, { nullable: true }),
+    __param(0, type_graphql_1.Root()), __param(1, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Post_1.Post, Object]),
+    __metadata("design:returntype", void 0)
+], PostResolver.prototype, "voteStatus", null);
 __decorate([
     type_graphql_1.Mutation(() => Boolean),
     type_graphql_1.UseMiddleware(isAuth_1.isAuth),

@@ -13,6 +13,7 @@ import { User } from "./entities/User";
 import { HelloResolver } from "./resolvers/hello";
 import { PostResolver } from "./resolvers/post";
 import { UserResolver } from "./resolvers/User";
+import { createUserLoader } from "./utils/createUserLoader";
 import path from "path";
 import { Updoot } from "./entities/Updoot";
 
@@ -22,7 +23,7 @@ const main = async () => {
     database: "redditclonetypeorm",
     username: "postgres",
     password: "postgres",
-    logging: false,
+    logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, "./migrations/*")],
     entities: [Post, User, Updoot],
@@ -67,7 +68,12 @@ const main = async () => {
       validate: false,
     }),
     //Context is a special object that is accessible by all resolvers
-    context: ({ req, res }) => ({ req, res, redis: redisClient }),
+    context: ({ req, res }) => ({
+      req,
+      res,
+      redis: redisClient,
+      userLoader: createUserLoader(),
+    }),
   });
 
   apolloServer.applyMiddleware({

@@ -29,7 +29,7 @@ const Index = () => {
     cursor: null as string | null,
   });
 
-  const [{ data, fetching }] = usePostsQuery({
+  const [{ data, error, fetching }] = usePostsQuery({
     variables,
   });
 
@@ -37,7 +37,12 @@ const Index = () => {
   const [, deletePost] = useDeletePostMutation();
 
   if (!fetching && !data) {
-    return <>No data</>;
+    return (
+      <>
+        <div>No data.</div>
+        <div>{error?.message}</div>{" "}
+      </>
+    );
   }
 
   return (

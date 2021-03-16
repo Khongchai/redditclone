@@ -17,6 +17,7 @@ import {
 import { Post } from "../entities/Post";
 import { getConnection } from "typeorm";
 import { Updoot } from "../entities/Updoot";
+import { User } from "../entities/User";
 
 @InputType()
 class PostInput {
@@ -38,10 +39,19 @@ class PaginatedPosts {
 @Resolver(Post)
 export class PostResolver {
   //FieldResolver is for when a field is purely calculable from other fields.
+  //And FieldResovlers is returned with every single query
   @FieldResolver(() => String)
   textSnippet(@Root() snippet: Post) {
     return snippet.text.slice(0, 20);
   }
+
+  @FieldResolver(() => User)
+  creator(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
+    return userLoader.load(post.creatorId);
+  }
+
+  @FieldResolver(() => Int, { nullable: true })
+  voteStatus(@Root() post: Post, @Ctx() { userLoader }: MyContext) {}
 
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
@@ -124,18 +134,12 @@ export class PostResolver {
     const posts = await getConnection().query(
       `
       select p.*,
-      json_build_object(
-      'username', u.username, 
-      'id', u.id, 
-      'email', u.email) 
-      creator,
       ${
         req.session.userId
           ? '(select value from updoot where "userId" = $2 and "postId" = p.id) "voteStatus"'
           : 'null as "voteStatus"'
       }
       from post p 
-      inner join public.user u on u.id = p."creatorId"
       ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
       order by p."createdAt" DESC
       limit $1
@@ -151,7 +155,7 @@ export class PostResolver {
 
   @Query(() => Post, { nullable: true })
   async post(@Arg("id", () => Int) id: number): Promise<Post | undefined> {
-    const requestedPost = await Post.findOne(id, { relations: ["creator"] });
+    const requestedPost = await Post.findOne(id);
     return requestedPost;
   }
 

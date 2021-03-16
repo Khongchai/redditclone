@@ -1,1 +1,2 @@
-about to look at an alternate method for fetching data https://youtu.be/I6ypD7qv3Z8?t=40171.
+about to continue writing data loader 
+https://youtu.be/I6ypD7qv3Z8?t=41378
