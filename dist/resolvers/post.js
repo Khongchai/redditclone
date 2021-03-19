@@ -61,7 +61,18 @@ let PostResolver = class PostResolver {
     creator(post, { userLoader }) {
         return userLoader.load(post.creatorId);
     }
-    voteStatus(post, { userLoader }) { }
+    voteStatus(post, { updootLoader, req }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!req.session.userId) {
+                return null;
+            }
+            const updoot = yield updootLoader.load({
+                postId: post.id,
+                userId: req.session.userId,
+            });
+            return updoot ? updoot.value : null;
+        });
+    }
     vote(postId, value, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
             const isUpdoot = value !== -1;
@@ -95,21 +106,12 @@ let PostResolver = class PostResolver {
             const realLimit = Math.min(50, limit);
             const realLimitPlusOne = realLimit + 1;
             const replacements = [realLimitPlusOne];
-            let cursorIndex = 3;
-            if (req.session.userId) {
-                replacements.push(req.session.userId);
-            }
             if (cursor) {
                 replacements.push(new Date(parseInt(cursor)));
             }
-            cursorIndex = replacements.length;
             const posts = yield typeorm_1.getConnection().query(`
-      select p.*,
-      ${req.session.userId
-                ? '(select value from updoot where "userId" = $2 and "postId" = p.id) "voteStatus"'
-                : 'null as "voteStatus"'}
-      from post p 
-      ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
+      select p.* from post p 
+      ${cursor ? `where p."createdAt" < $2` : ""}
       order by p."createdAt" DESC
       limit $1
     `, replacements);
@@ -178,10 +180,11 @@ __decorate([
 ], PostResolver.prototype, "creator", null);
 __decorate([
     type_graphql_1.FieldResolver(() => type_graphql_1.Int, { nullable: true }),
-    __param(0, type_graphql_1.Root()), __param(1, type_graphql_1.Ctx()),
+    __param(0, type_graphql_1.Root()),
+    __param(1, type_graphql_1.Ctx()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Post_1.Post, Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], PostResolver.prototype, "voteStatus", null);
 __decorate([
     type_graphql_1.Mutation(() => Boolean),

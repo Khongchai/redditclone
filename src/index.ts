@@ -16,6 +16,7 @@ import { UserResolver } from "./resolvers/User";
 import { createUserLoader } from "./utils/createUserLoader";
 import path from "path";
 import { Updoot } from "./entities/Updoot";
+import { createUpdootLoader } from "./utils/createUpdootLoader";
 
 const main = async () => {
   const conn = await createConnection({
@@ -73,6 +74,7 @@ const main = async () => {
       res,
       redis: redisClient,
       userLoader: createUserLoader(),
+      updootLoader: createUpdootLoader(),
     }),
   });
 

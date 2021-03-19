@@ -39,7 +39,9 @@ class PaginatedPosts {
 @Resolver(Post)
 export class PostResolver {
   //FieldResolver is for when a field is purely calculable from other fields.
-  //And FieldResovlers is returned with every single query
+  //And FieldResovlers are returned only when called (can be called by any query/mutation in this resolver)
+  //which is good. They only get called when they are needed.
+
   @FieldResolver(() => String)
   textSnippet(@Root() snippet: Post) {
     return snippet.text.slice(0, 20);
@@ -51,7 +53,20 @@ export class PostResolver {
   }
 
   @FieldResolver(() => Int, { nullable: true })
-  voteStatus(@Root() post: Post, @Ctx() { userLoader }: MyContext) {}
+  async voteStatus(
+    @Root() post: Post,
+    @Ctx() { updootLoader, req }: MyContext
+  ) {
+    if (!req.session.userId) {
+      return null;
+    }
+
+    const updoot = await updootLoader.load({
+      postId: post.id,
+      userId: req.session.userId,
+    });
+    return updoot ? updoot.value : null;
+  }
 
   @Mutation(() => Boolean)
   @UseMiddleware(isAuth)
@@ -120,27 +135,14 @@ export class PostResolver {
     const realLimitPlusOne = realLimit + 1;
     const replacements: any[] = [realLimitPlusOne];
 
-    let cursorIndex = 3;
-    if (req.session.userId) {
-      replacements.push(req.session.userId);
-    }
-
     if (cursor) {
       replacements.push(new Date(parseInt(cursor)));
     }
 
-    cursorIndex = replacements.length;
-
     const posts = await getConnection().query(
       `
-      select p.*,
-      ${
-        req.session.userId
-          ? '(select value from updoot where "userId" = $2 and "postId" = p.id) "voteStatus"'
-          : 'null as "voteStatus"'
-      }
-      from post p 
-      ${cursor ? `where p."createdAt" < $${cursorIndex}` : ""}
+      select p.* from post p 
+      ${cursor ? `where p."createdAt" < $2` : ""}
       order by p."createdAt" DESC
       limit $1
     `,
