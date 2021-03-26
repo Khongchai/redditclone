@@ -1,0 +1,4 @@
+#!/bin/bash
+cd redditclone_ui
+cd with-chakra-ui-app
+npm run dev
